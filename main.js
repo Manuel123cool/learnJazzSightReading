@@ -6,6 +6,8 @@ let notes = Array();
 
 let barSizes = Array();
 
+let barPositions = Array();
+
 let rhythms = [
     [
         "wholeNote"
@@ -40,9 +42,20 @@ let rhythms = [
         "halfNoteDotted",
         "triplet"
     ],
+    [
+        "halfNotePause",
+        "triplet",
+        "triplet"
+    ],
+    [
+        "halfNotePauseDotted",
+        "quarterNotePauseDotted",
+        "eighthNotePause"
+    ]
+
 ];
 
-let distanceToUpperPlus = 50;
+let distanceToUpperPlus = 70;
 
 let Note = class {
     constructor(whichNote, noteValue, x) {
@@ -62,6 +75,7 @@ function drawLines() {
 }
 
 function drawTactLine(x = 0) {
+    barPositions.push(x);
     ctx.fillRect(25 + x, 30 + distanceToUpperPlus, 1.5, 40);
 } 
 
@@ -111,6 +125,8 @@ function drawHalfNote(whichNote, dotted = false) {
         x = notes[notes.length - 1].x + 75;
         if (notes[notes.length - 1].noteValue == "wholeNote") {
             x = notes[notes.length - 1].x + 170;
+        } else if (notes[notes.length - 1].noteValue == "quarterNotePause") {
+            x = notes[notes.length - 1].x + 50;
         }
     } 
     notes.push(new Note(whichNote, "halfNote", x));
@@ -246,7 +262,7 @@ function drawTriplet() {
         drawEighthNote(note);
     }
 
-    let lowestY = 76;
+    let lowestY = 36 + distanceToUpperPlus;
     for (let i = 0; i < 3; i++) {
         let y = (86 - notes[notes.length - (i + 1)].whichNote * 5) +
             distanceToUpperPlus;
@@ -260,6 +276,73 @@ function drawTriplet() {
 
     ctx.font = "15px Arial";
     ctx.fillText("3", notes[notes.length - 3].x + 47, lowestY - 25); 
+}
+
+function drawHalfNotePause(dotted = false) {
+    let x = 10;
+    if (notes.length > 0) {
+        x = notes[notes.length - 1].x + 75;
+        if (notes[notes.length - 1].noteValue == "wholeNote") {
+            x = notes[notes.length - 1].x + 170;
+        }
+    } 
+    notes.push(new Note(-1, "halfNotePause", x));
+
+    let y = (86 - 7 * 5) + distanceToUpperPlus - 5;
+    ctx.fillRect(x, y, 13, 5);
+
+    if (dotted) {
+        drawDot(x - 17, y + 5);    
+    }
+
+}
+
+function drawQuarterNotePause(dotted = false) {
+    let x = 10;
+    if (notes.length > 0) {
+        x = notes[notes.length - 1].x + 75;
+        if (notes[notes.length - 1].noteValue == "wholeNote") {
+            x = notes[notes.length - 1].x + 170;
+        }
+    } 
+    notes.push(new Note(-1, "quarterNotePause", x));
+
+    let y = (86 - 7 * 5) + distanceToUpperPlus - 15;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + 5, y + 5);
+    ctx.lineTo(x, y + 15);
+    ctx.lineTo(x + 5, y + 20);
+    ctx.lineTo(x, y + 25);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+ 
+
+    if (dotted) {
+        drawDot(x - 17, y + 15);    
+    }
+
+}
+
+function drawEighthNotePause() {
+    let x = 10;
+    if (notes.length > 0) {
+        x = notes[notes.length - 1].x + 75;
+        if (notes[notes.length - 1].noteValue == "wholeNote") {
+            x = notes[notes.length - 1].x + 170;
+        }
+    } 
+    notes.push(new Note(-1, "eighthNotePause", x));
+
+    let y = (86 - 7 * 5) + distanceToUpperPlus - 5;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + 12, y);
+    ctx.lineTo(x, y + 15);
+    ctx.lineWidth = 2;
+    ctx.stroke();
 }
 
 function reWhichBar(count) {
@@ -428,6 +511,10 @@ function drawLastTactLine() {
         gap = 50;
     } else if (notes[notes.length - 1].noteValue == "eighthNote") {
         gap = 50;
+    } else if (notes[notes.length - 1].noteValue == "quarterNotePause") {
+        gap = 50;
+    } else if (notes[notes.length - 1].noteValue == "eighthNotePause") {
+        gap = 50;
     }
     let x = notes[notes.length - 1].x + gap;
     drawTactLine(x - 15);
@@ -471,6 +558,21 @@ function drawNote(noteValue) {
         case "triplet":
             drawTriplet();
             break;
+         case "halfNotePause":
+            drawHalfNotePause();
+            break;
+         case "halfNotePauseDotted":
+            drawHalfNotePause(true);
+            break;
+         case "quarterNotePause":
+            drawQuarterNotePause();
+            break;
+         case "quarterNotePauseDotted":
+            drawQuarterNotePause(true);
+            break;
+         case "eighthNotePause":
+            drawEighthNotePause();
+            break;
     }
 }
 
@@ -488,14 +590,59 @@ function drawRyhtm(rhythm) {
     drawLastTactLine();
 }
 
+function drawChord(x) {
+    x += 25;
+    ctx.font = "15px Arial";
+    let chordString = "";
+    let randomChordSize = 4;
+    let randomNum = Math.floor(Math.random() * randomChordSize) + 1;
+    switch (randomNum) {
+        case 1:
+            chordString = "Dmin7";
+            break;
+        case 2:
+            chordString = "G7";
+            break;
+        case 3:
+            chordString = "Cmaj";
+            break;
+        case 4:
+            chordString = "Bhd";
+            break;
+    }
+    ctx.fillText(chordString, x, 40); 
+}
+
+function drawRandomChords() {
+    let count = 0;
+    barPositions.forEach( elem => {
+        switch (count) {
+            case 0:
+                drawChord(elem);
+                break;
+            case 4:
+                drawChord((elem - barPositions[count - 1]) / 2 + 
+                    barPositions[count - 1]);
+                break;
+            default:
+                drawChord((elem - barPositions[count - 1]) / 2 + 
+                    barPositions[count - 1]);
+                drawChord(elem);
+                break;
+        }
+        count++;
+    });
+}
+
 drawLines();
 drawTactLine();
-drawTactLine(1098);
 
 drawRyhtm(7);
-drawRyhtm(1);
-drawRyhtm(1);
+drawRyhtm(8);
+drawRyhtm(9);
 drawRyhtm(7);
 
 drawBeamOrFlag();
-drawLastTactLine();
+drawTactLine(1098);
+
+drawRandomChords();
