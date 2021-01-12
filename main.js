@@ -625,6 +625,9 @@ function drawRandomChords() {
                     barPositions[count - 1]);
                 break;
             default:
+                if (count > 4) {
+                    break;
+                }
                 drawChord((elem - barPositions[count - 1]) / 2 + 
                     barPositions[count - 1]);
                 drawChord(elem);
@@ -637,11 +640,11 @@ function drawRandomChords() {
 drawLines();
 drawTactLine();
 
-drawRyhtm(7);
-drawRyhtm(8);
-drawRyhtm(9);
-drawRyhtm(7);
-
+for (let i = 0; i < 4; ++i) {
+    let randomNumSize = rhythms.length;
+    let randomNum = Math.floor(Math.random() * randomNumSize) + 1;
+    drawRyhtm(randomNum);
+}
 drawBeamOrFlag();
 drawTactLine(1098);
 
