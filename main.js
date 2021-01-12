@@ -35,8 +35,14 @@ let rhythms = [
         "eighthNote",
         "eighthNote",
         "halfNote"
-    ]
+    ],
+    [
+        "halfNoteDotted",
+        "triplet"
+    ],
 ];
+
+let distanceToUpperPlus = 50;
 
 let Note = class {
     constructor(whichNote, noteValue, x) {
@@ -48,15 +54,15 @@ let Note = class {
 
 function drawLines() {
     let width = 1100;
-    ctx.fillRect(25, 30, width, 1.5);
-    ctx.fillRect(25, 40, width, 1.5);
-    ctx.fillRect(25, 50, width, 1.5);
-    ctx.fillRect(25, 60, width, 1.5);
-    ctx.fillRect(25, 70, width, 1.5);
+    ctx.fillRect(25, 30 + distanceToUpperPlus, width, 1.5);
+    ctx.fillRect(25, 40 + distanceToUpperPlus, width, 1.5);
+    ctx.fillRect(25, 50 + distanceToUpperPlus, width, 1.5);
+    ctx.fillRect(25, 60 + distanceToUpperPlus, width, 1.5);
+    ctx.fillRect(25, 70 + distanceToUpperPlus, width, 1.5);
 }
 
-function drawTactLine(y = 0) {
-    ctx.fillRect(25 + y, 30, 1.5, 40);
+function drawTactLine(x = 0) {
+    ctx.fillRect(25 + x, 30 + distanceToUpperPlus, 1.5, 40);
 } 
 
 function drawDot(x, y) {
@@ -74,11 +80,13 @@ function drawWholeNote(whichNote) {
             x = notes[notes.length - 1].x + 70;
         } else if (notes[notes.length - 1].noteValue == "quarterNote") {
             x = notes[notes.length - 1].x + 70;
+        } else if (notes[notes.length - 1].noteValue == "eighthNote") {
+            x = notes[notes.length - 1].x + 70;
         }
     } 
     notes.push(new Note(whichNote, "wholeNote", x));
 
-    let y = 86 - whichNote * 5;
+    let y = (86 - whichNote * 5) + distanceToUpperPlus;
     ctx.beginPath();
     ctx.lineWidth = 1.5;
     ctx.arc(x + 25, y, 5, 0, 2 * Math.PI);
@@ -107,7 +115,7 @@ function drawHalfNote(whichNote, dotted = false) {
     } 
     notes.push(new Note(whichNote, "halfNote", x));
 
-    let y = 86 - whichNote * 5;
+    let y = (86 - whichNote * 5) + distanceToUpperPlus;
     ctx.beginPath();
     ctx.lineWidth = 1.5;
     ctx.arc(x + 25, y, 5, 0, 2 * Math.PI);
@@ -147,7 +155,7 @@ function drawQuarterNote(whichNote, dotted = false) {
     } 
     notes.push(new Note(whichNote, "quarterNote", x));
 
-    let y = 86 - whichNote * 5;
+    let y = (86 - whichNote * 5) + distanceToUpperPlus;
     ctx.beginPath();
     ctx.lineWidth = 1.5;
     ctx.arc(x + 25, y, 5, 0, 2 * Math.PI);
@@ -193,7 +201,7 @@ function drawEighthNote(whichNote, dotted = false) {
     } 
     notes.push(new Note(whichNote, "eighthNote", x));
 
-    let y = 86 - whichNote * 5;
+    let y = (86 - whichNote * 5) + distanceToUpperPlus;
     ctx.beginPath();
     ctx.lineWidth = 1.5;
     ctx.arc(x + 25, y, 5, 0, 2 * Math.PI);
@@ -216,6 +224,42 @@ function drawEighthNote(whichNote, dotted = false) {
         drawDot(x, y);    
     }
 
+}
+
+function drawTriplet() {
+    for (let i = 0; i < 3; ++i) {
+        let note = Math.floor(Math.random() * 15) + 1;
+        let range = 7;
+        if (notes.length > 0) {
+            let notInRange = true;
+            while (notInRange) {
+                note = Math.floor(Math.random() * 15) + 1;
+                let distance = notes[notes.length - 1].whichNote - note;
+                if (distance < 0) {
+                    distance *= -1;    
+                }
+                if (distance < range) {
+                    notInRange = false;
+                }
+            }
+        }
+        drawEighthNote(note);
+    }
+
+    let lowestY = 76;
+    for (let i = 0; i < 3; i++) {
+        let y = (86 - notes[notes.length - (i + 1)].whichNote * 5) +
+            distanceToUpperPlus;
+        if (y < lowestY) {
+            lowestY = y;
+        }
+    }
+    ctx.fillRect(notes[notes.length - 3].x + 20, lowestY - 20, 60, 1.5);
+    ctx.fillRect(notes[notes.length - 3].x + 20, lowestY - 20, 1.5, 7);
+    ctx.fillRect(notes[notes.length - 3].x + 80, lowestY - 20, 1.5, 7);
+
+    ctx.font = "15px Arial";
+    ctx.fillText("3", notes[notes.length - 3].x + 47, lowestY - 25); 
 }
 
 function reWhichBar(count) {
@@ -246,9 +290,10 @@ function drawBeam(whichBar, whichNote) {
 
     let pairs = Array(); 
     for (let i = from - 1; i < to - 1; ++i) {
-        if (notes[i + 1].noteValue != "eighthNote") {
+        if (notes[i].noteValue != "eighthNote") {
             continue;
-        } else if (notes[i + 1].noteValue != "eighthNote") {
+        }
+        if (notes[i + 1].noteValue != "eighthNote") {
             continue;
         }
         if (i + 1 > to) {
@@ -309,12 +354,11 @@ function drawBeam(whichBar, whichNote) {
             up = true; 
         }
 
-        console.log("which bar: " + whichBar + " up: " + up);
         let x1 = notes[start].x;
-        let y1 = 86 - notes[start].whichNote * 5;
+        let y1 = (86 - notes[start].whichNote * 5) + distanceToUpperPlus;
 
         let x2 = notes[end].x;
-        let y2 = 86 - notes[end].whichNote * 5;
+        let y2 = (86 - notes[end].whichNote * 5) + distanceToUpperPlus;
         if(up) {
             ctx.beginPath();
             ctx.moveTo(x1 + 30, y1 - 25);
@@ -330,7 +374,8 @@ function drawBeam(whichBar, whichNote) {
         }
         for (let j = 0; j < pairs[i].length; j++) {
             let x = notes[pairs[i][j]].x;
-            let y = 86 - notes[pairs[i][j]].whichNote * 5;
+            let y = (86 - notes[pairs[i][j]].whichNote * 5) + 
+                distanceToUpperPlus;
             if (down) {
                 ctx.fillRect(x + 20, y, 1.5, 25);
             } if (up) {
@@ -349,14 +394,14 @@ function drawBeamOrFlag() {
         if (elem.noteValue != "eighthNote") {
             return;
         }
-        let whichBar = reWhichBar(count);
+        let whichBar = reWhichBar(count - 1);
 
         let connectedToBeam = drawBeam(whichBar, count - 1);
         if (connectedToBeam) {
             return;
         }
         let x = elem.x;
-        let y = 86 - elem.whichNote * 5;
+        let y = (86 - elem.whichNote * 5) + distanceToUpperPlus;
         if (elem.whichNote > 7) {
             ctx.fillRect(x + 20, y, 1.5, 25);
 
@@ -380,6 +425,8 @@ function drawLastTactLine() {
     if (notes[notes.length - 1].noteValue == "halfNote") {
         gap = 50;
     } else if (notes[notes.length - 1].noteValue == "quarterNote") {
+        gap = 50;
+    } else if (notes[notes.length - 1].noteValue == "eighthNote") {
         gap = 50;
     }
     let x = notes[notes.length - 1].x + gap;
@@ -421,12 +468,20 @@ function drawNote(noteValue) {
         case "quarterNoteDotted":
             drawQuarterNote(note, true);
             break;
- 
+        case "triplet":
+            drawTriplet();
+            break;
     }
 }
 
 function drawRyhtm(rhythm) {
-    barSizes.push(rhythms[rhythm - 1].length);
+    let length = rhythms[rhythm - 1].length;
+    rhythms[rhythm - 1].forEach( elem => {
+        if (elem == "triplet") {
+            length += 2;
+        }
+    });
+    barSizes.push(length);
     rhythms[rhythm - 1].forEach( elem => {
         drawNote(elem);
     });
@@ -437,10 +492,10 @@ drawLines();
 drawTactLine();
 drawTactLine(1098);
 
-drawRyhtm(4);
-drawRyhtm(6);
-drawRyhtm(6);
-drawRyhtm(6);
+drawRyhtm(7);
+drawRyhtm(1);
+drawRyhtm(1);
+drawRyhtm(7);
 
 drawBeamOrFlag();
 drawLastTactLine();
